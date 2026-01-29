@@ -19,7 +19,7 @@ st.markdown("""
     }
     .main-title {
         /* 1. 요청하신 글자 크기 및 두께 설정 */
-        font-size: 2.5rem !important;
+        font-size: 2rem !important;
         font-weight: 700 !important;
         
         /* 2. 그라데이션 효과 (신뢰감 있는 블루 계열) */
