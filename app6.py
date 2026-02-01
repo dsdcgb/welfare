@@ -100,7 +100,7 @@ if prompt := st.chat_input("문서 내용에 대해 질문하세요"):
 
             try:
                 response = client.models.generate_content(
-                    model="gemini-2.0-flash",
+                    model="gemini-2.5-flash",
                     contents=prompt,
                     config={"system_instruction": system_instruction}
                 )
