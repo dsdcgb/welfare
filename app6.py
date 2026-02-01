@@ -71,13 +71,25 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # 5. 질문 처리
-if prompt := st.chat_input("문서 내용에 대해 질문하세요"):
+if prompt := st.chat_input("달서구 복지 서비스에 대해 궁금한 점을 물어보세요."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     # Gemini 2.5 Flash 모델 호출
-    system_instruction = f"당신은 문서 전문가입니다. 아래 내용을 바탕으로 친절하게 답하세요.\n\n{st.session_state.pdf_text}"
+    system_instruction = f"""
+    당신은 대구광역시 달서구의 사회복지업무 전문가입니다.
+    1. 제공된 문서 내용을 바탕으로 답변하세요.
+    2. 문서에 없는 정보는 지어내지 말고 "죄송합니다. 정보가 없어 답변을 할 수 없습니다. 달서구청(053-667-2000)으로 문의하시기 바랍니다."라고 안내하세요.
+    
+    ## 출력
+    1. 복지 서비스(사업) 종류가 많으면 다음 순서로 정보를 출력합니다.
+      - 서비스명
+      - 서비스 내용 요약
+    2. 복지 서비스(사업) 종류가 많지 않으면 서비스(사업)별 상세 정보를 출력합니다.
+    [매뉴얼 내용]
+    {st.session_state.pdf_text}
+    """
     
     with st.chat_message("assistant"):
         response = client.models.generate_content(
