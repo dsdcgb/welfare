@@ -3,99 +3,105 @@ from google import genai
 from PyPDF2 import PdfReader
 import os
 
-# 1. 페이지 설정 및 디자인 (이전의 소프트 모던 스타일 유지)
-st.set_page_config(page_title="Dalseo AI Manual", page_icon="✨", layout="wide")
+# 1. 페이지 설정 및 디자인 (Pretendard & 그라데이션 타이틀)
+st.set_page_config(page_title="달서 복지 AI", page_icon="✨", layout="wide")
 
-# CSS 스타일 (가독성을 위해 핵심 부분만 유지)
 st.markdown("""
     <style>
-    .stApp { background-color: #f8f9fa; color: #212529; }
-    /* 1. Pretendard 웹 폰트 불러오기 */
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-
-    /* 2. 앱 전체 및 타이틀에 폰트 적용 */
     html, body, [class*="css"], .stApp, .main-title {
-        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif !important;
+        font-family: 'Pretendard', sans-serif !important;
     }
+    .stApp { background-color: #f8f9fa; color: #212529; }
     .main-title {
-        /* 1. 요청하신 글자 크기 및 두께 설정 */
-        font-size: 2rem !important;
+        font-size: 2.5rem !important;
         font-weight: 700 !important;
-        
-        /* 2. 그라데이션 효과 (신뢰감 있는 블루 계열) */
         background: linear-gradient(90deg, #0d6efd 0%, #00d2ff 100%);
-        -webkit-background-clip: text; /* 글자 모양대로 배경 자르기 */
-        -webkit-text-fill-color: transparent !important; /* 글자 내부 색상을 투명하게 하여 배경 노출 */
-        
-        /* 3. 정렬 및 간격 조절 */
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent !important;
         text-align: center;
         margin-top: -1rem;
         margin-bottom: 2rem;
-        letter-spacing: -0.02em; /* 폰트를 더 세련되게 만드는 자간 조절 */
-        
-        /* 4. 애니메이션 효과 (선택 사항: 부드러운 느낌 추가) */
-        transition: all 0.3s ease;
+        letter-spacing: -0.02em;
+    }
+    .stChatMessage {
+        background-color: #ffffff !important;
+        border-radius: 12px !important;
+        border: 1px solid #e9ecef !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. 클라이언트 및 모델 설정 (Gemini 2.5 Flash)
+# 2. 클라이언트 설정
 client = genai.Client(api_key=st.secrets["GOOGLE_API_KEY"])
 
-st.markdown('<p class="main-title">✨달서 복지서비스 도우미</p>', unsafe_allow_html=True)
+# 타이틀 표시
+st.markdown('<p class="main-title">✨ 달서 복지서비스 도우미</p>', unsafe_allow_html=True)
 
-# 3. PDF 자동 로드 로직
-# 앱과 같은 폴더에 있는 'manual.pdf' 파일을 읽어옵니다.
-PDF_FILE_PATH = "manual.pdf"  # ← 여기에 실제 파일 이름을 적어주세요.
+# 3. PDF 자동 로드 (캐싱 적용)
+PDF_FILE_PATH = "manual.pdf" 
+
+@st.cache_data
+def get_pdf_text(path):
+    if os.path.exists(path):
+        reader = PdfReader(path)
+        return "".join([page.extract_text() for page in reader.pages])
+    return None
 
 if "pdf_text" not in st.session_state:
-    if os.path.exists(PDF_FILE_PATH):
-        with st.spinner("지정된 문서를 분석하는 중입니다..."):
-            try:
-                reader = PdfReader(PDF_FILE_PATH)
-                text = "".join([page.extract_text() for page in reader.pages])
-                st.session_state.pdf_text = text
-                st.sidebar.success(f"✅ '{PDF_FILE_PATH}' 로드 완료!")
-            except Exception as e:
-                st.error(f"파일을 읽는 중 오류가 발생했습니다: {e}")
-    else:
-        st.error(f"파일을 찾을 수 없습니다: '{PDF_FILE_PATH}' 파일이 소스 코드와 같은 폴더에 있는지 확인해주세요.")
+    with st.spinner("복지 매뉴얼을 준비하는 중입니다..."):
+        text = get_pdf_text(PDF_FILE_PATH)
+        if text:
+            st.session_state.pdf_text = text
+        else:
+            st.error(f"'{PDF_FILE_PATH}' 파일을 찾을 수 없습니다.")
 
-# 세션 상태 관리 (메시지 기록)
+# 세션 상태 관리
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# 4. 채팅 화면 출력
+# 대화 기록 출력
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 5. 질문 처리
+# 4. 질문 처리 및 최신 스트리밍 방식 적용
 if prompt := st.chat_input("달서구 복지 서비스에 대해 궁금한 점을 물어보세요."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Gemini 2.5 Flash 모델 호출
-    system_instruction = f"""
-    당신은 대구광역시 달서구의 사회복지업무 전문가입니다.
-    1. 제공된 문서 내용을 바탕으로 답변하세요.
-    2. 문서에 없는 정보는 지어내지 말고 "죄송합니다. 정보가 없어 답변을 할 수 없습니다. 달서구청(053-667-2000)으로 문의하시기 바랍니다."라고 안내하세요.
-    
-    ## 출력
-    1. 복지 서비스(사업) 종류가 많으면 다음 순서로 정보를 출력합니다.
-      - 서비스명
-      - 서비스 내용 요약
-    2. 복지 서비스(사업) 종류가 많지 않으면 서비스(사업)별 상세 정보를 출력합니다.
-    [매뉴얼 내용]
-    {st.session_state.pdf_text}
-    """
-    
     with st.chat_message("assistant"):
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-            config={"system_instruction": system_instruction}
-        )
-        st.markdown(response.text)
-        st.session_state.messages.append({"role": "assistant", "content": response.text})
+        system_instruction = f"""
+        당신은 대구광역시 달서구의 사회복지업무 전문가입니다.
+        1. 제공된 [매뉴얼 내용]을 바탕으로 답변하세요.
+        2. 문서에 없는 정보는 지어내지 말고 "죄송합니다. 정보가 없어 답변을 할 수 없습니다. 달서구청(053-667-2000)으로 문의하시기 바랍니다."라고 안내하세요.
+        
+        [매뉴얼 내용]
+        {st.session_state.pdf_text}
+        """
+        
+        try:
+            # ✅ 해결 포인트: generate_content_stream() 함수 사용
+            response_stream = client.models.generate_content_stream(
+                model="gemini-2.5-flash",
+                contents=prompt,
+                config={"system_instruction": system_instruction}
+            )
+
+            # 스트리밍 텍스트를 하나씩 내보내는 제너레이터
+            def stream_generator():
+                for chunk in response_stream:
+                    # chunk.text가 있는 경우에만 전달
+                    if chunk.text:
+                        yield chunk.text
+
+            # st.write_stream을 이용해 화면에 타자 치듯 출력
+            full_response = st.write_stream(stream_generator())
+            
+            # 최종 답변을 대화 기록에 저장
+            st.session_state.messages.append({"role": "assistant", "content": full_response})
+
+        except Exception as e:
+            st.error(f"오류가 발생했습니다: {e}")
