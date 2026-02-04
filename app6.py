@@ -14,7 +14,7 @@ st.markdown("""
     }
     .stApp { background-color: #f8f9fa; color: #212529; }
     .main-title {
-        font-size: 2.5rem !important;
+        font-size: 2rem !important;
         font-weight: 700 !important;
         background: linear-gradient(90deg, #0d6efd 0%, #00d2ff 100%);
         -webkit-background-clip: text;
@@ -37,7 +37,7 @@ st.markdown("""
 client = genai.Client(api_key=st.secrets["GOOGLE_API_KEY"])
 
 # 타이틀 표시
-st.markdown('<p class="main-title">✨ 달서 복지서비스 도우미</p>', unsafe_allow_html=True)
+st.markdown('<p class="main-title">✨ 달서 AI 복지 도우미</p>', unsafe_allow_html=True)
 
 # 3. PDF 자동 로드 (캐싱 적용)
 PDF_FILE_PATH = "manual.pdf" 
@@ -67,7 +67,7 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # 4. 질문 처리 및 최신 스트리밍 방식 적용
-if prompt := st.chat_input("달서구 복지 서비스에 대해 궁금한 점을 물어보세요."):
+if prompt := st.chat_input("복지 서비스에 대해 궁금한 점을 물어보세요."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -75,10 +75,10 @@ if prompt := st.chat_input("달서구 복지 서비스에 대해 궁금한 점�
     with st.chat_message("assistant"):
         system_instruction = f"""
         당신은 대구광역시 달서구의 사회복지업무 전문가입니다.
-        1. 제공된 [매뉴얼 내용]을 바탕으로 답변하세요.
+        1. 제공된 [문서 내용]을 바탕으로 답변하세요.
         2. 문서에 없는 정보는 지어내지 말고 "죄송합니다. 정보가 없어 답변을 할 수 없습니다. 달서구청(053-667-2000)으로 문의하시기 바랍니다."라고 안내하세요.
         
-        [매뉴얼 내용]
+        [문서 내용]
         {st.session_state.pdf_text}
         """
         
