@@ -42,7 +42,7 @@ st.markdown('<p class="main-title">✨ 달서 AI 복지 도우미</p>', unsafe_a
 # 3. PDF 자동 로드 (캐싱 적용)
 PDF_FILE_PATH = "manual.pdf" 
 
-@st.cache_data
+@st.cache_data(show_spinner="잠시만 기다려주세요. 😊")
 def get_pdf_text(path):
     if os.path.exists(path):
         reader = PdfReader(path)
@@ -50,12 +50,13 @@ def get_pdf_text(path):
     return None
 
 if "pdf_text" not in st.session_state:
-    with st.spinner("복지 매뉴얼을 준비하는 중입니다..."):
-        text = get_pdf_text(PDF_FILE_PATH)
-        if text:
-            st.session_state.pdf_text = text
-        else:
-            st.error(f"'{PDF_FILE_PATH}' 파일을 찾을 수 없습니다.")
+    # 최초 실행 시에만 PDF를 읽어 메모리에 저장합니다.
+    text = get_pdf_text(PDF_FILE_PATH)
+    if text:
+        st.session_state.pdf_text = text
+        st.toast("✅ 준비가 완료되었습니다!", icon="📄")
+    else:
+        st.error(f"'{PDF_FILE_PATH}' 파일을 찾을 수 없습니다.")
 
 # 세션 상태 관리
 if "messages" not in st.session_state:
@@ -76,9 +77,10 @@ if prompt := st.chat_input("복지 서비스에 대해 궁금한 점을 물어�
         system_instruction = f"""
         당신은 대구광역시 달서구의 사회복지업무 전문가입니다.
         1. 민원인의 질문에 제공된 [문서 내용]을 바탕으로 출처를 밝히지 않고 답변하세요.
-	2. 문서에 전화번호 뒷자리 네자리만 있을 때는 앞에 "053-667-"를 붙혀서 표시합니다.
-        3. 문서에 없는 정보는 지어내지 말고 "죄송합니다. 정보가 없어 답변을 할 수 없습니다."라고 안내하세요.
-        
+	2. 문서에 담당부서는 서비스명(사업명) 옆에 표시된 명칭으로 표시합니다.
+	3. 문서에 전화번호 뒷자리 네자리만 있을 때는 앞에 "053-667-"를 붙혀서 표시합니다.
+        4. 문서에 없는 정보는 지어내지 말고 "죄송합니다. 정보가 없어 답변을 할 수 없습니다."라고 안내하세요.
+
         [문서 내용]
         {st.session_state.pdf_text}
         """
