@@ -54,13 +54,28 @@ if "pdf_text" not in st.session_state:
     text = get_pdf_text(PDF_FILE_PATH)
     if text:
         st.session_state.pdf_text = text
-        st.toast("✅ 준비가 완료되었습니다!", icon="📄")
     else:
         st.error(f"'{PDF_FILE_PATH}' 파일을 찾을 수 없습니다.")
 
 # 세션 상태 관리
 if "messages" not in st.session_state:
-    st.session_state.messages = []
+# 처음 접속 시 어시스턴트가 먼저 환영 인사를 건넵니다.
+    st.session_state.messages = [
+        {
+            "role": "assistant", 
+            "content": """안녕하세요! **대구광역시 달서구 AI 복지서비스 도우미**입니다. ✨
+
+주민 여러분께 꼭 필요한 복지 정보를 빠르고 정확하게 안내해 드립니다. 궁금하신 내용을 아래와 같이 질문해 보세요!
+
+**🔍 이렇게 물어보세요:**
+* "65세 이상 어르신이 받을 수 있는 혜택은 뭐야?"
+* "갑자기 소득이 줄었는데 긴급지원 받을 수 있어?"
+* "아동수당 신청 방법이랑 준비물 알려줘."
+
+---
+⚠️ *생성형 AI 기반 챗봇으로 답변이 부정확할 수 있으니, 반드시 담당 부서를 통해 정확한 내용을 확인하시기 바랍니다.*"""
+        }
+    ]
 
 # 대화 기록 출력
 for message in st.session_state.messages:
