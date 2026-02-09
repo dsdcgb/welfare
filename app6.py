@@ -30,6 +30,22 @@ st.markdown("""
         border: 1px solid #e9ecef !important;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
     }
+    /* 1. 상단 헤더(Fork, GitHub 아이콘, 메뉴 바) 숨기기 */
+    header {visibility: hidden;}
+    
+    /* 2. 하단 'Made with Streamlit' 푸터 숨기기 */
+    footer {visibility: hidden;}
+    
+    /* 3. 오른쪽 상단 삼점 메뉴(#MainMenu) 숨기기 */
+    #MainMenu {visibility: hidden;}
+    
+    /* 4. 우측 하단 빨간색 배포(Deploy) 버튼 숨기기 */
+    .stDeployButton {display:none;}
+    
+    /* 5. (선택사항) 상단 여백 조절 - 헤더가 사라진 자리를 메워줍니다. */
+    .block-container {
+        padding-top: 2rem !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
