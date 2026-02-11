@@ -53,7 +53,7 @@ st.markdown("""
 client = genai.Client(api_key=st.secrets["GOOGLE_API_KEY"])
 
 # 타이틀 표시
-st.markdown('<p class="main-title">✨ 달서 AI 복지 도우미</p>', unsafe_allow_html=True)
+st.markdown('<p class="main-title">달서 AI 복지 도우미</p>', unsafe_allow_html=True)
 
 # 3. PDF 자동 로드 (캐싱 적용)
 PDF_FILE_PATH = "manual.pdf" 
@@ -79,7 +79,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = [
         {
             "role": "assistant", 
-            "content": """안녕하세요! **달서 AI 복지 도우미**입니다. ✨
+            "content": """안녕하세요! **달서 AI 복지 도우미**입니다. 
 주민 여러분께 꼭 필요한 복지 정보를 빠르고 정확하게 안내해 드립니다. 궁금하신 내용을 아래와 같이 질문해 보세요!
 
 **🔍 이렇게 물어보세요:**
@@ -87,7 +87,7 @@ if "messages" not in st.session_state:
 * "갑자기 소득이 줄었는데 긴급지원 받을 수 있어?"
 * "아동수당 신청 방법이랑 준비물 알려줘."
 ---
-⚠️ *생성형 AI 기반 챗봇으로 답변이 부정확할 수 있으니, 반드시 담당 부서를 통해 정확한 내용을 확인하시기 바랍니다.*"""
+⚠️ 생성형 AI 기반 챗봇으로 답변이 부정확할 수 있으니, 반드시 담당 부서를 통해 정확한 내용을 확인하시기 바랍니다."""
         }
     ]
 
