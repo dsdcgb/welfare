@@ -30,6 +30,7 @@ st.markdown("""
         border: 1px solid #e9ecef !important;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
     }
+
     /* 1. 상단 헤더(Fork, GitHub 아이콘, 메뉴 바) 숨기기 */
     header {visibility: hidden;}
     
@@ -140,7 +141,10 @@ if prompt := st.chat_input("복지 서비스에 대해 궁금한 점을 물어�
                 for chunk in response_stream:
                     # chunk.text가 있는 경우에만 전달
                     if chunk.text:
-                        yield chunk.text
+                        # ✅ 모든 물결표(~) 앞에 역슬래시(\\)를 붙여 마크다운 취소선 문법을 무력화합니다.
+                        # 이렇게 하면 문구는 유지되면서 선만 생기지 않습니다.
+                        cleaned_text = chunk.text.replace("~", "\\~")
+                        yield cleaned_text
 
             # st.write_stream을 이용해 화면에 타자 치듯 출력
             full_response = st.write_stream(stream_generator())
