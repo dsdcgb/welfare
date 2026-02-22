@@ -2,6 +2,7 @@ import streamlit as st
 from google import genai
 from PyPDF2 import PdfReader
 import os
+import re
 
 # 1. 페이지 설정 및 디자인 (Pretendard & 그라데이션 타이틀)
 st.set_page_config(page_title="달서 복지 AI", page_icon="✨", layout="wide")
@@ -115,9 +116,15 @@ if prompt := st.chat_input("복지 서비스에 대해 궁금한 점을 물어�
 	3. 문서에 전화번호 뒷자리 네자리만 있을 때는 앞에 "053-667-"를 붙혀서 표시합니다.
         4. **정보 부재 시**: 문서에 내용이 없다면 지어내지 말고 "죄송합니다. 해당 정보가 확인되지 않아 답변을 할 수 없습니다."라고 안내하세요.
 
+        ## 인터넷 주소(URL) 안내 지침
+        1. 인터넷 주소를 안내할 때는 반드시 **[사이트명](URL)** 형식을 사용하세요. 
+          - 예: [문화누리 홈페이지](https://www.mnuri.kr)
+        2. `www.`으로 시작하는 주소라도 반드시 앞에 **https://**를 붙여서 전체 경로를 작성하세요.
+        3. 주소 뒤에 마침표(.)나 괄호())가 바로 붙지 않도록 주소 앞뒤에 반드시 **공백**을 한 칸씩 두세요.
+
         ## 출력 형식
-        - 답변은 불렛포인트(•)나 번호(1, 2, 3)를 사용하여 가독성 있게 구성하세요.
-        - 서비스(사업)별로 담당부서와 전화번호도 안내하세요.
+        1. 답변은 불렛포인트(•)나 번호(1, 2, 3)를 사용하여 가독성 있게 구성하세요.
+        2. 서비스(사업)별로 담당부서와 전화번호도 안내하세요.
 
         [문서 내용]
         {st.session_state.pdf_text}
@@ -141,10 +148,19 @@ if prompt := st.chat_input("복지 서비스에 대해 궁금한 점을 물어�
                 for chunk in response_stream:
                     # chunk.text가 있는 경우에만 전달
                     if chunk.text:
-                        # ✅ 모든 물결표(~) 앞에 역슬래시(\\)를 붙여 마크다운 취소선 문법을 무력화합니다.
-                        # 이렇게 하면 문구는 유지되면서 선만 생기지 않습니다.
-                        cleaned_text = chunk.text.replace("~", "\\~")
-                        yield cleaned_text
+                        text = chunk.text
+            
+                        # 1. 취소선 및 도메인 공백 보정 (기존 로직)
+                        text = text.replace("~", "\\~").replace("or. kr", "or.kr").replace("go. kr", "go.kr")
+            
+                        # (?<!https://)와 (?<!http://)를 나란히 배치하여 각각 확인하게 합니다.
+                        text = re.sub(r'(?<!https://)(?<!http://)www\.', r'https://www.', text)
+            
+                        # 3. URL 주변 공백 확보 (괄호 잠식 방지)
+                        url_pattern = r'(https?://[^\s()<>]+)'
+                        text = re.sub(url_pattern, r' \1 ', text)
+            
+                        yield text
 
             # st.write_stream을 이용해 화면에 타자 치듯 출력
             full_response = st.write_stream(stream_generator())
